@@ -137,4 +137,12 @@ export const pagesContent: PageContent[] = [
       },
     },
   },
+  {
+    name: "portfolio",
+    sections: {
+      hero: {
+        headline: { type: "input", value: "" },
+      },
+    },
+  },
 ];

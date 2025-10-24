@@ -9,6 +9,9 @@ import {
   Video,
   IdCard,
   Files,
+  CameraIcon,
+  Box,
+  ToolCase,
 } from "lucide-react";
 
 const linkIconWidth = 18;
@@ -40,6 +43,21 @@ export const groups = [
         name: "Contact",
         path: "/dashboard/pages/contact",
         icon: <Contact width={linkIconWidth} />,
+      },
+      {
+        name: "Studio Rental",
+        path: "/dashboard/pages/studio-rental",
+        icon: <CameraIcon width={linkIconWidth} />,
+      },
+      {
+        name: "Props Rental",
+        path: "/dashboard/pages/props-rental",
+        icon: <Box width={linkIconWidth} />,
+      },
+      {
+        name: "Equipment Rental",
+        path: "/dashboard/pages/equipment-rental",
+        icon: <ToolCase width={linkIconWidth} />,
       },
     ],
   },

@@ -6,7 +6,6 @@ import React, {
   useState,
   useEffect,
   KeyboardEvent,
-  ComponentProps,
 } from "react";
 import {
   Bold,
@@ -46,22 +45,24 @@ export default function RichEditor({
   }, []);
 
   // Function to get predominant text direction
-  const detectTextDirection = useCallback((text: string): 'rtl' | 'ltr' => {
-    const cleanText = text.replace(/<[^>]*>/g, ''); // Remove HTML tags
-    const arabicChars = (cleanText.match(/[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF]/g) || []).length;
+  const detectTextDirection = useCallback((text: string): "rtl" | "ltr" => {
+    const cleanText = text.replace(/<[^>]*>/g, ""); // Remove HTML tags
+    const arabicChars = (
+      cleanText.match(/[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF]/g) || []
+    ).length;
     const latinChars = (cleanText.match(/[a-zA-Z]/g) || []).length;
-    
-    return arabicChars > latinChars ? 'rtl' : 'ltr';
+
+    return arabicChars > latinChars ? "rtl" : "ltr";
   }, []);
 
   useEffect(() => {
     if (editorRef.current && editorRef.current.innerHTML !== value) {
       editorRef.current.innerHTML = value;
       setContent(value);
-      
+
       // Update text direction based on content
       const direction = detectTextDirection(value);
-      setIsRTL(direction === 'rtl');
+      setIsRTL(direction === "rtl");
     }
   }, [value, detectTextDirection]);
 
@@ -108,7 +109,7 @@ export default function RichEditor({
 
       // Update text direction after content change
       const direction = detectTextDirection(newContent);
-      setIsRTL(direction === 'rtl');
+      setIsRTL(direction === "rtl");
     },
     [onChange, updateActiveFormats, detectTextDirection]
   );
@@ -136,7 +137,7 @@ export default function RichEditor({
 
       // Update text direction after content change
       const direction = detectTextDirection(newContent);
-      setIsRTL(direction === 'rtl');
+      setIsRTL(direction === "rtl");
     },
     [onChange, updateActiveFormats, detectTextDirection]
   );
@@ -168,7 +169,7 @@ export default function RichEditor({
 
     // Update text direction after content change
     const direction = detectTextDirection(newContent);
-    setIsRTL(direction === 'rtl');
+    setIsRTL(direction === "rtl");
   }, [onChange, updateActiveFormats, detectTextDirection]);
 
   const handleInput = useCallback(() => {
@@ -179,11 +180,59 @@ export default function RichEditor({
 
     // Update text direction dynamically as user types
     const direction = detectTextDirection(newContent);
-    setIsRTL(direction === 'rtl');
+    setIsRTL(direction === "rtl");
   }, [onChange, updateActiveFormats, detectTextDirection]);
+
+  // Function to handle tab for nested lists
+  const handleTabForNestedLists = useCallback(
+    (e: KeyboardEvent<HTMLDivElement>): boolean => {
+      const selection = window.getSelection();
+      if (!selection || selection.rangeCount === 0) return false;
+
+      const range = selection.getRangeAt(0);
+      const parentElement = range.commonAncestorContainer.parentElement;
+
+      if (!parentElement) return false;
+
+      // Check if we're in a list item
+      const listItem = parentElement.closest("li");
+      if (!listItem) return false;
+
+      // Check if we're at the beginning of the list item (cursor position 0)
+      if (range.startOffset !== 0 || range.endOffset !== 0) return false;
+
+      if (e.key === "Tab") {
+        e.preventDefault();
+
+        if (e.shiftKey) {
+          // Shift+Tab - Outdent (move left)
+          document.execCommand("outdent");
+        } else {
+          // Tab - Indent (move right)
+          document.execCommand("indent");
+        }
+
+        // Update content and formats
+        const newContent = editorRef.current?.innerHTML || "";
+        setContent(newContent);
+        onChange?.(newContent);
+        updateActiveFormats();
+
+        return true;
+      }
+
+      return false;
+    },
+    [onChange, updateActiveFormats]
+  );
 
   const handleKeyDown = useCallback(
     (e: KeyboardEvent<HTMLDivElement>) => {
+      // First try to handle tab for nested lists
+      if (e.key === "Tab" && handleTabForNestedLists(e)) {
+        return;
+      }
+
       if (e.ctrlKey || e.metaKey) {
         switch (e.key.toLowerCase()) {
           case "b":
@@ -217,7 +266,7 @@ export default function RichEditor({
         }
       }
     },
-    [executeCommand]
+    [executeCommand, handleTabForNestedLists]
   );
 
   const isActive = (format: string) => activeFormats.includes(format);
@@ -227,9 +276,11 @@ export default function RichEditor({
       <div className={clsx("border border-gray-500 rounded-lg", className)}>
         {/* Toolbar */}
         <div className="border-b border-gray-500 p-2">
-          <div className={clsx("flex items-center gap-1 relative", {
-            "flex-row-reverse": isRTL
-          })}>
+          <div
+            className={clsx("flex items-center gap-1 relative", {
+              "flex-row-reverse": isRTL,
+            })}
+          >
             {/* Bold */}
             <button
               onClick={() => executeCommand("bold")}
@@ -323,10 +374,15 @@ export default function RichEditor({
               </button>
 
               {showSizeDropdown && (
-                <div className={clsx("absolute mt-1 bg-zinc-800 border border-gray-600 rounded shadow-lg z-10", {
-                  "right-0": isRTL,
-                  "left-0": !isRTL
-                })}>
+                <div
+                  className={clsx(
+                    "absolute mt-1 bg-zinc-800 border border-gray-600 rounded shadow-lg z-10",
+                    {
+                      "right-0": isRTL,
+                      "left-0": !isRTL,
+                    }
+                  )}
+                >
                   {[12, 14, 16, 18, 20, 24, 32].map((size) => (
                     <button
                       key={size}
@@ -334,10 +390,13 @@ export default function RichEditor({
                         applyFontSize(size.toString());
                         setShowSizeDropdown(false);
                       }}
-                      className={clsx("w-full px-4 py-1 text-sm text-white hover:bg-gray-700", {
-                        "text-right": isRTL,
-                        "text-left": !isRTL
-                      })}
+                      className={clsx(
+                        "w-full px-4 py-1 text-sm text-white hover:bg-gray-700",
+                        {
+                          "text-right": isRTL,
+                          "text-left": !isRTL,
+                        }
+                      )}
                     >
                       {size}px
                     </button>
@@ -356,35 +415,37 @@ export default function RichEditor({
           onKeyDown={handleKeyDown}
           className="min-h-32 p-4 focus:outline-none text-white relative placeholder-editor"
           style={{
-            fontFamily: isRTL ? "Tahoma, Arial, sans-serif" : "Arial, sans-serif",
+            fontFamily: isRTL
+              ? "Tahoma, Arial, sans-serif"
+              : "Arial, sans-serif",
             fontSize: "14px",
             lineHeight: "1.5",
-            direction: isRTL ? 'rtl' : 'ltr',
-            textAlign: isRTL ? 'right' : 'left',
+            direction: isRTL ? "rtl" : "ltr",
+            textAlign: isRTL ? "right" : "left",
           }}
-          dir={isRTL ? 'rtl' : 'ltr'}
+          dir={isRTL ? "rtl" : "ltr"}
           suppressContentEditableWarning={true}
           data-placeholder={placeholder}
         />
       </div>
 
-      {/* Add global styles for lists with RTL support */}
+      {/* Add global styles for lists with RTL support and nested lists */}
       <style jsx global>{`
         [contenteditable] ul {
           list-style-type: disc;
-          padding-left: ${isRTL ? '0' : '1.5rem'};
-          padding-right: ${isRTL ? '1.5rem' : '0'};
+          padding-left: ${isRTL ? "0" : "1.5rem"};
+          padding-right: ${isRTL ? "1.5rem" : "0"};
           margin: 0.5rem 0;
         }
         [contenteditable] ol {
           list-style-type: decimal;
-          padding-left: ${isRTL ? '0' : '1.5rem'};
-          padding-right: ${isRTL ? '1.5rem' : '0'};
+          padding-left: ${isRTL ? "0" : "1.5rem"};
+          padding-right: ${isRTL ? "1.5rem" : "0"};
           margin: 0.5rem 0;
         }
         [contenteditable] li {
           margin: 0.25rem 0;
-          direction: ${isRTL ? 'rtl' : 'ltr'};
+          direction: ${isRTL ? "rtl" : "ltr"};
         }
         [contenteditable][dir="rtl"] ul {
           list-style-type: disc;
@@ -395,6 +456,31 @@ export default function RichEditor({
           list-style-type: arabic-indic;
           padding-left: 0;
           padding-right: 1.5rem;
+        }
+        /* Styles for nested lists */
+        [contenteditable] ul ul,
+        [contenteditable] ol ul {
+          list-style-type: circle;
+          padding-left: ${isRTL ? "0" : "1.5rem"};
+          padding-right: ${isRTL ? "1.5rem" : "0"};
+        }
+        [contenteditable] ol ol,
+        [contenteditable] ul ol {
+          list-style-type: lower-alpha;
+          padding-left: ${isRTL ? "0" : "1.5rem"};
+          padding-right: ${isRTL ? "1.5rem" : "0"};
+        }
+        [contenteditable] ul ul ul,
+        [contenteditable] ol ul ul,
+        [contenteditable] ul ol ul,
+        [contenteditable] ol ol ul {
+          list-style-type: square;
+        }
+        [contenteditable] ol ol ol,
+        [contenteditable] ul ul ol,
+        [contenteditable] ol ul ol,
+        [contenteditable] ul ol ol {
+          list-style-type: lower-roman;
         }
       `}</style>
     </div>
