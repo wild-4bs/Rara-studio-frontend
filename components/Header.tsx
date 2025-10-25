@@ -23,6 +23,7 @@ export const Header = () => {
     { name: "Work", path: "/work" },
     { name: "Services", path: "/services" },
     { name: "Portfolio", path: "/portfolio" },
+    { name: "rental", path: "/" },
     { name: "Contact", path: "/contact" },
   ];
 
@@ -41,88 +42,97 @@ export const Header = () => {
 
           {/* Desktop Navigation */}
           <ul className="flex items-center gap-12 max-lg:gap-6 max-md:hidden">
-            {links?.map((link, i) => (
-              <li key={i}>
-                <Link
-                  href={link.path}
-                  className={clsx("text-xl leading-[100%]", {
-                    "font-bold text-primary": pathname == link.path,
-                    "font-normal text-black": pathname != link.path,
-                  })}
-                >
-                  {link.name}
-                </Link>
-              </li>
-            ))}
+            {links?.map((link, i) => {
+              if (link.name == "rental") {
+                return (
+                  <Popover key={i}>
+                    <PopoverTrigger asChild>
+                      <Button
+                        className={clsx(
+                          "bg-transparent shadow-none text-black w-fit hover:bg-transparent hover:text-black text-lg leading-[100%] !px-0",
+                          {
+                            "font-bold text-primary":
+                              pathname.includes("/rental"),
+                            "font-normal text-black":
+                              !pathname.includes("/rental"),
+                          }
+                        )}
+                      >
+                        Rental <ChevronDown />
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="p-0">
+                      <ul>
+                        <li>
+                          <Link
+                            href={"/rental/studio-rental"}
+                            className={clsx(
+                              "text-lg leading-[100%] py-3 inline-block hover:bg-black/5 w-full px-2",
+                              {
+                                "font-bold text-primary":
+                                  pathname == "/rental/studio-rental",
+                                "font-normal text-black":
+                                  pathname != "/rental/studio-rental",
+                              }
+                            )}
+                          >
+                            Studio Rental
+                          </Link>
+                        </li>
+                        <li>
+                          <Link
+                            href={"/rental/props-rental"}
+                            className={clsx(
+                              "text-lg leading-[100%] py-3 inline-block hover:bg-black/5 w-full px-2",
+                              {
+                                "font-bold text-primary":
+                                  pathname == "/rental/props-rental",
+                                "font-normal text-black":
+                                  pathname != "/rental/props-rental",
+                              }
+                            )}
+                          >
+                            Props Rental
+                          </Link>
+                        </li>
+                        <li>
+                          <Link
+                            href={"/rental/equipment-rental"}
+                            className={clsx(
+                              "text-lg leading-[100%] py-3 inline-block hover:bg-black/5 w-full px-2",
+                              {
+                                "font-bold text-primary":
+                                  pathname == "/rental/equipment-rental",
+                                "font-normal text-black":
+                                  pathname != "/rental/equipment-rental",
+                              }
+                            )}
+                          >
+                            Equipment Rental
+                          </Link>
+                        </li>
+                      </ul>
+                    </PopoverContent>
+                  </Popover>
+                );
+              } else {
+                return (
+                  <li key={i}>
+                    <Link
+                      href={link.path}
+                      className={clsx("text-xl leading-[100%]", {
+                        "font-bold text-primary": pathname == link.path,
+                        "font-normal text-black": pathname != link.path,
+                      })}
+                    >
+                      {link.name}
+                    </Link>
+                  </li>
+                );
+              }
+            })}
 
             {/* Rental Popover */}
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button
-                  className={clsx(
-                    "bg-transparent shadow-none text-black w-fit hover:bg-transparent hover:text-black text-lg leading-[100%] !px-0",
-                    {
-                      "font-bold text-primary": pathname.includes("/rental"),
-                      "font-normal text-black": !pathname.includes("/rental"),
-                    }
-                  )}
-                >
-                  Rental <ChevronDown />
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="p-0">
-                <ul>
-                  <li>
-                    <Link
-                      href={"/rental/studio-rental"}
-                      className={clsx(
-                        "text-lg leading-[100%] py-3 inline-block hover:bg-black/5 w-full px-2",
-                        {
-                          "font-bold text-primary":
-                            pathname == "/rental/studio-rental",
-                          "font-normal text-black":
-                            pathname != "/rental/studio-rental",
-                        }
-                      )}
-                    >
-                      Studio Rental
-                    </Link>
-                  </li>
-                  <li>
-                    <Link
-                      href={"/rental/props-rental"}
-                      className={clsx(
-                        "text-lg leading-[100%] py-3 inline-block hover:bg-black/5 w-full px-2",
-                        {
-                          "font-bold text-primary":
-                            pathname == "/rental/props-rental",
-                          "font-normal text-black":
-                            pathname != "/rental/props-rental",
-                        }
-                      )}
-                    >
-                      Props Rental
-                    </Link>
-                  </li>
-                  <li>
-                    <Link
-                      href={"/rental/equipment-rental"}
-                      className={clsx(
-                        "text-lg leading-[100%] py-3 inline-block hover:bg-black/5 w-full px-2",
-                        {
-                          "font-bold text-primary":
-                            pathname == "/rental/equipment-rental",
-                          "font-normal text-black":
-                            pathname != "/rental/equipment-rental",
-                        }
-                      )}
-                    >
-                      Equipment Rental
-                    </Link>
-                  </li>
-                </ul>
-              </PopoverContent>
-            </Popover>
           </ul>
 
           {/* Mobile Menu Button */}
@@ -157,74 +167,79 @@ export const Header = () => {
 
         {/* Sidebar Links */}
         <nav className="flex-1 flex flex-col p-6 gap-4">
-          {links?.map((link, i) => (
-            <Link
-              key={i}
-              href={link.path}
-              onClick={() => setIsOpen(false)}
-              className={clsx("text-2xl", {
-                "font-bold text-primary": pathname == link.path,
-                "font-normal text-black": pathname != link.path,
-              })}
-            >
-              {link.name}
-            </Link>
-          ))}
-
-          {/* Rental Accordion */}
-          <Accordion type="single" collapsible className="w-full">
-            <AccordionItem value="rental">
-              <AccordionTrigger
-                className={clsx(
-                  "text-2xl font-normal text-black hover:no-underline w-full",
-                  {
-                    "font-bold text-primary": pathname.includes("/rental"),
-                  }
-                )}
-              >
-                Rental
-                <ChevronDown />
-              </AccordionTrigger>
-              <AccordionContent className="flex flex-col gap-3 mt-2">
+          {links?.map((link, i) => {
+            if (link.name != "rental")
+              return (
                 <Link
-                  href="/rental/studio-rental"
+                  key={i}
+                  href={link.path}
                   onClick={() => setIsOpen(false)}
-                  className={clsx("text-lg pl-4", {
-                    "font-bold text-primary":
-                      pathname == "/rental/studio-rental",
-                    "font-normal text-black":
-                      pathname != "/rental/studio-rental",
+                  className={clsx("text-2xl", {
+                    "font-bold text-primary": pathname == link.path,
+                    "font-normal text-black": pathname != link.path,
                   })}
                 >
-                  Studio Rental
+                  {link.name}
                 </Link>
-                <Link
-                  href="/rental/props-rental"
-                  onClick={() => setIsOpen(false)}
-                  className={clsx("text-lg pl-4", {
-                    "font-bold text-primary":
-                      pathname == "/rental/props-rental",
-                    "font-normal text-black":
-                      pathname != "/rental/props-rental",
-                  })}
-                >
-                  Props Rental
-                </Link>
-                <Link
-                  href="/rental/equipment-rental"
-                  onClick={() => setIsOpen(false)}
-                  className={clsx("text-lg pl-4", {
-                    "font-bold text-primary":
-                      pathname == "/rental/equipment-rental",
-                    "font-normal text-black":
-                      pathname != "/rental/equipment-rental",
-                  })}
-                >
-                  Equipment Rental
-                </Link>
-              </AccordionContent>
-            </AccordionItem>
-          </Accordion>
+              );
+            else
+              return (
+                <Accordion type="single" collapsible className="w-full" key={i}>
+                  <AccordionItem value="rental">
+                    <AccordionTrigger
+                      className={clsx(
+                        "text-2xl font-normal text-black hover:no-underline w-full",
+                        {
+                          "font-bold text-primary":
+                            pathname.includes("/rental"),
+                        }
+                      )}
+                    >
+                      Rental
+                      <ChevronDown />
+                    </AccordionTrigger>
+                    <AccordionContent className="flex flex-col gap-3 mt-2">
+                      <Link
+                        href="/rental/studio-rental"
+                        onClick={() => setIsOpen(false)}
+                        className={clsx("text-lg pl-4", {
+                          "font-bold text-primary":
+                            pathname == "/rental/studio-rental",
+                          "font-normal text-black":
+                            pathname != "/rental/studio-rental",
+                        })}
+                      >
+                        Studio Rental
+                      </Link>
+                      <Link
+                        href="/rental/props-rental"
+                        onClick={() => setIsOpen(false)}
+                        className={clsx("text-lg pl-4", {
+                          "font-bold text-primary":
+                            pathname == "/rental/props-rental",
+                          "font-normal text-black":
+                            pathname != "/rental/props-rental",
+                        })}
+                      >
+                        Props Rental
+                      </Link>
+                      <Link
+                        href="/rental/equipment-rental"
+                        onClick={() => setIsOpen(false)}
+                        className={clsx("text-lg pl-4", {
+                          "font-bold text-primary":
+                            pathname == "/rental/equipment-rental",
+                          "font-normal text-black":
+                            pathname != "/rental/equipment-rental",
+                        })}
+                      >
+                        Equipment Rental
+                      </Link>
+                    </AccordionContent>
+                  </AccordionItem>
+                </Accordion>
+              );
+          })}
         </nav>
 
         {/* Sidebar Footer */}
